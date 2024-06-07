@@ -1,11 +1,17 @@
 package com.pokepote.monsterhunter;
 
 import com.mojang.logging.LogUtils;
+import com.pokepote.monsterhunter.extra.CreativeTabLoader;
+import com.pokepote.monsterhunter.item.ItemLoader;
+import com.pokepote.monsterhunter.monster.MonsterLoader;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -31,7 +37,9 @@ public class MonsterHunterMod
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
-
+        ItemLoader.ITEMS.register(modEventBus);
+        MonsterLoader.ENTITY_TYPES.register(modEventBus);
+        CreativeTabLoader.TABS.register(modEventBus);
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
 
@@ -49,7 +57,12 @@ public class MonsterHunterMod
     // Add the example block item to the building blocks tab
     private void addCreative(BuildCreativeModeTabContentsEvent event)
     {
-
+        if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
+            event.accept(ItemLoader.GRAND_JAGRAS_EGG);
+        }
+        if(event.getTab() == CreativeTabLoader.MONSTER_HUNTER_ITEMS.get()){
+            event.accept(ItemLoader.GRAND_JAGRAS_EGG);
+        }
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -67,9 +80,25 @@ public class MonsterHunterMod
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event)
         {
-            // Some client setup code
-            LOGGER.info("HELLO FROM CLIENT SETUP");
-            LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+            //EntityRenderers.register(ModelEntity.SHADOW.get(), ShadowRenderer::new);
         }
+
+        @SubscribeEvent
+        public static void registerLayer(EntityRenderersEvent.RegisterLayerDefinitions event){
+            //event.registerLayerDefinition(ModelLayers.PIXIE_LAYER, PixieModel::createBodyLayer);
+        }
+    }
+
+    @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+    public static class OverallModEvents {
+        @SubscribeEvent
+        public static void onClientSetup(FMLClientSetupEvent event) {}
+
+        @SubscribeEvent
+        public static void entityAttributeEvent(EntityAttributeCreationEvent event){
+            //event.put(ModelEntity.ARSENE.get(), Arsene.setAttributes());
+        }
+
+
     }
 }
